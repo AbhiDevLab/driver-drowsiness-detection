@@ -4,6 +4,8 @@ import sys
 import dlib
 import time
 import pickle
+import platform
+import threading
 import numpy as np
 from pathlib import Path
 
@@ -15,6 +17,11 @@ from tensorflow.keras.models import load_model
 from utils.landmark_utils import shape_to_coords, get_left_eye, get_right_eye, crop_eye
 from utils.eye_aspect_ratio import eye_aspect_ratio
 
+try:
+    from playsound import playsound
+except Exception:
+    playsound = None
+
 THIS_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(THIS_DIR, '..'))
 MODEL_DIR = os.path.join(PROJECT_ROOT, 'models')
@@ -22,6 +29,10 @@ MODEL_DIR = os.path.join(PROJECT_ROOT, 'models')
 THIS_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(THIS_DIR, '..'))
 PREDICTOR_PATH = os.path.join(PROJECT_ROOT, 'shape_predictor_68_face_landmarks.dat')
+ASSETS_DIR = os.path.join(PROJECT_ROOT, 'assets')
+os.makedirs(ASSETS_DIR, exist_ok=True)
+ALERT_SOUND_PATH = os.path.join(ASSETS_DIR, 'siren-alert.mp3')
+ALERT_AUDIO_COOLDOWN = 3.0
 
 EAR_THRESHOLD = 0.23
 EAR_CONSEC_FRAMES = 20
@@ -57,6 +68,26 @@ ear_counter = 0
 eye_cnn_counter = 0
 yawn_counter = 0
 side_start_time = None
+last_audio_alert = 0.0
+
+
+def play_audio_alert():
+    """Play the configured alert sound without blocking the main loop."""
+    def _play():
+        if playsound and os.path.exists(ALERT_SOUND_PATH):
+            try:
+                playsound(ALERT_SOUND_PATH)
+                return
+            except Exception:
+                pass
+        if platform.system() == "Windows":
+            try:
+                import winsound
+                winsound.Beep(2500, 700)
+            except Exception:
+                pass
+
+    threading.Thread(target=_play, daemon=True).start()
 
 def preprocess(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -176,6 +207,11 @@ while True:
                 msg = "DRINK WATER ALERT - Stop driving and drink water"
             else:
                 msg = "DROWSINESS ALERT!"
+
+            now = time.time()
+            if now - last_audio_alert >= ALERT_AUDIO_COOLDOWN:
+                play_audio_alert()
+                last_audio_alert = now
 
             cv2.putText(frame, msg, (20,40),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 3)
