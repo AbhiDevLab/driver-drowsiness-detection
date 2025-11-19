@@ -69,17 +69,7 @@ git clone <repository-url>
 cd Driver-Drowsiness-Detection
 ```
 
-### Step 2: Activate Virtual Environment
-
-**Windows (CMD):**
-```cmd
-call drowzy\Scripts\activate.bat
-```
-
-**Windows (PowerShell):**
-```powershell
-drowzy\Scripts\Activate.ps1
-```
+### Step 2: Create & Activate Virtual Environment
 
 ### Step 3: Install Dependencies
 
