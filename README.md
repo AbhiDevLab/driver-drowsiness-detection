@@ -302,53 +302,6 @@ EAR = (vertical_distances_sum) / (2 * horizontal_distance)
 
 ---
 
-### Script Files (`scripts/`)
-
-#### `detector_limited_run.py`
-**Purpose**: Test detector with limited frame count
-
-**Functionality**:
-- Runs detector for specified number of frames (default: 100)
-- Useful for testing without running indefinitely
-- Prints alert summaries and statistics
-- Validates model loading and camera access
-
----
-
-#### `detector_smoke_test.py`
-**Purpose**: Comprehensive system smoke test
-
-**Functionality**:
-- Verifies all model files exist and can be loaded
-- Tests dlib predictor and detector initialization
-- Captures sample frames from webcam
-- Detects faces and extracts landmarks
-- Reports system readiness status
-
----
-
-#### `smoke_test_imports.py`
-**Purpose**: Verify all required Python packages are installed
-
-**Functionality**:
-- Tests imports for all critical dependencies
-- Reports success/failure for each module
-- Quick diagnostic tool for installation issues
-
----
-
-#### `run_all_training.cmd`
-**Purpose**: Batch script to train all models sequentially
-
-**Functionality**:
-- Activates virtual environment
-- Runs all three training scripts in order
-- Logs output to separate files
-- Handles errors and reports failures
-- Windows CMD batch script
-
----
-
 ## 🤖 Machine Learning Libraries
 
 ### Core Deep Learning
