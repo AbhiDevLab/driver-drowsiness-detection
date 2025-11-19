@@ -38,7 +38,7 @@ EAR_THRESHOLD = 0.23
 EAR_CONSEC_FRAMES = 20
 EYE_CNN_CLOSE_THRESH = 0.5
 EYE_CNN_CONSEC = 5
-YAWN_THRESH = 0.6
+YAWN_THRESH = 0.5
 YAWN_CONSEC = 3
 SIDE_LOOK_THRESH = 3.0
 SIDE_LEFT_RATIO = 0.35
@@ -204,7 +204,7 @@ while True:
             if side_duration >= SIDE_LOOK_THRESH:
                 msg = "LOOK STRAIGHT ALERT!"
             elif yawn_counter >= YAWN_CONSEC:
-                msg = "DRINK WATER ALERT - Stop driving and drink water"
+                msg = "DRINK WATER ALERT"
             else:
                 msg = "DROWSINESS ALERT!"
 
