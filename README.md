@@ -105,14 +105,6 @@ python src\drowsiness_detector.py
 
 ### Training Models
 
-Train all models sequentially:
-
-```bash
-scripts\run_all_training.cmd
-```
-
-Or train individually:
-
 ```bash
 # Train Eye CNN
 python src\eye_cnn_training.py --dataset dataset --out models\cnn_model.h5 --epochs 15
@@ -123,21 +115,6 @@ python src\mouth_cnn_training.py
 # Train EAR-based ML Classifier
 python src\ml_classifier_training.py --dataset dataset --out models\ml_model.pkl
 ```
-
-### Testing Setup
-
-Run smoke tests to verify installation:
-
-```bash
-# Test imports
-python scripts\smoke_test_imports.py
-
-# Test detector with limited frames
-python scripts\detector_smoke_test.py
-python scripts\detector_limited_run.py
-```
-
----
 
 ## 📁 Project Structure
 
