@@ -18,11 +18,20 @@ from utils.landmark_utils import crop_eye, get_left_eye, get_right_eye, shape_to
 class DrowsinessEngine:
     """Load expensive model assets once and create isolated per-camera sessions."""
 
-    def __init__(self, assets: dict[str, str | Path]) -> None:
+    def __init__(
+        self,
+        assets: dict[str, str | Path],
+        eye_positive_class: str = "open",
+    ) -> None:
         required = {"eye_cnn", "mouth_cnn", "ear_classifier", "landmark_predictor"}
         missing = required.difference(assets)
         if missing:
             raise ValueError(f"Missing model asset keys: {', '.join(sorted(missing))}")
+
+        eye_positive_class = eye_positive_class.strip().lower()
+        if eye_positive_class not in {"open", "closed"}:
+            raise ValueError("eye_positive_class must be either 'open' or 'closed'.")
+        self.eye_positive_class = eye_positive_class
 
         self.eye_cnn = load_model(str(assets["eye_cnn"]), compile=False)
         self.mouth_cnn = load_model(str(assets["mouth_cnn"]), compile=False)
@@ -58,6 +67,7 @@ class DrowsinessSession:
     def __init__(self, engine: DrowsinessEngine) -> None:
         self.engine = engine
         self.eye_cnn = engine.eye_cnn
+        self.eye_positive_class = engine.eye_positive_class
         self.mouth_cnn = engine.mouth_cnn
         self.ear_classifier = engine.ear_classifier
         self.face_detector = engine.face_detector
@@ -160,9 +170,14 @@ class DrowsinessSession:
         eye_open_probability = self._probability(
             self.eye_cnn, self._model_input(eye_crop, self.eye_cnn)
         )
-        # flow_from_directory sorts closed_eyes before open_eyes:
-        # class 0=closed, class 1=open. The sigmoid therefore estimates P(open).
-        eye_closed_probability = 1.0 - eye_open_probability
+        # Binary sigmoid models return the probability of their positive class.
+        # The positive class is configurable because Keras does not store the
+        # training directory's class-index mapping inside the saved H5 model.
+        eye_closed_probability = (
+            1.0 - eye_open_probability
+            if self.eye_positive_class == "open"
+            else eye_open_probability
+        )
         eye_closed = eye_closed_probability >= self.EYE_CLOSED_THRESHOLD
 
         mouth_crop = crop_eye(frame, coordinates[48:68])
