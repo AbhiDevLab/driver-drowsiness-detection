@@ -1,7 +1,4 @@
-"""Reusable frame-level inference for the Streamlit webcam application.
-
-This module has no webcam/window loop. The browser supplies frames through WebRTC.
-"""
+"""Reusable frame-level inference for the Streamlit webcam application."""
 from __future__ import annotations
 
 import threading
@@ -19,18 +16,7 @@ from utils.landmark_utils import crop_eye, get_left_eye, get_right_eye, shape_to
 
 
 class DrowsinessEngine:
-    """Load trained models once and process frames from browser webcam sessions."""
-
-    EAR_THRESHOLD = 0.23
-    EAR_CONSEC_FRAMES = 20
-    EYE_CLOSED_THRESHOLD = 0.50
-    EYE_CNN_CONSEC = 5
-    YAWN_THRESHOLD = 0.50
-    YAWN_CONSEC = 3
-    SIDE_LOOK_SECONDS = 3.0
-    SIDE_LEFT_RATIO = 0.35
-    SIDE_RIGHT_RATIO = 0.65
-    ML_CLOSED_CONSEC = 10
+    """Load expensive model assets once and create isolated per-camera sessions."""
 
     def __init__(self, assets: dict[str, str | Path]) -> None:
         required = {"eye_cnn", "mouth_cnn", "ear_classifier", "landmark_predictor"}
@@ -47,8 +33,36 @@ class DrowsinessEngine:
 
         self.face_detector = dlib.get_frontal_face_detector()
         self.landmark_predictor = dlib.shape_predictor(str(assets["landmark_predictor"]))
-        # A single engine can be shared by multiple Streamlit sessions.
+        # Model inference is serialized, while temporal state remains per visitor.
         self._inference_lock = threading.Lock()
+
+    def create_session(self) -> "DrowsinessSession":
+        """Create independent temporal counters for one browser camera stream."""
+        return DrowsinessSession(self)
+
+
+class DrowsinessSession:
+    """Frame processor state belonging to exactly one browser camera stream."""
+
+    EAR_THRESHOLD = 0.23
+    EAR_CONSEC_FRAMES = 20
+    EYE_CLOSED_THRESHOLD = 0.50
+    EYE_CNN_CONSEC = 5
+    YAWN_THRESHOLD = 0.50
+    YAWN_CONSEC = 3
+    SIDE_LOOK_SECONDS = 3.0
+    SIDE_LEFT_RATIO = 0.35
+    SIDE_RIGHT_RATIO = 0.65
+    ML_CLOSED_CONSEC = 10
+
+    def __init__(self, engine: DrowsinessEngine) -> None:
+        self.engine = engine
+        self.eye_cnn = engine.eye_cnn
+        self.mouth_cnn = engine.mouth_cnn
+        self.ear_classifier = engine.ear_classifier
+        self.face_detector = engine.face_detector
+        self.landmark_predictor = engine.landmark_predictor
+        self._inference_lock = engine._inference_lock
         self._reset_temporal_state()
 
     def _reset_temporal_state(self) -> None:
@@ -101,7 +115,7 @@ class DrowsinessEngine:
         if frame is None or frame.size == 0:
             raise ValueError("Received an empty video frame.")
 
-        # Limit inference resolution to make hosted CPU processing more responsive.
+        # Limit inference resolution to keep hosted CPU processing more responsive.
         height, width = frame.shape[:2]
         if width > 640:
             scale = 640.0 / width
@@ -147,7 +161,7 @@ class DrowsinessEngine:
             self.eye_cnn, self._model_input(eye_crop, self.eye_cnn)
         )
         # flow_from_directory sorts closed_eyes before open_eyes:
-        # class 0=closed, class 1=open. The sigmoid estimates P(open).
+        # class 0=closed, class 1=open. The sigmoid therefore estimates P(open).
         eye_closed_probability = 1.0 - eye_open_probability
         eye_closed = eye_closed_probability >= self.EYE_CLOSED_THRESHOLD
 
