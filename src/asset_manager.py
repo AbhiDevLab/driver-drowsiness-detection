@@ -105,8 +105,14 @@ def resolve_model_assets(
             try:
                 _download_asset(url, cached_path)
             except Exception as exc:
+                # Do not echo the configured URL: it may contain a signed token.
+                if isinstance(exc, requests.RequestException):
+                    status = getattr(getattr(exc, "response", None), "status_code", None)
+                    detail = f"HTTP status {status}" if status else type(exc).__name__
+                else:
+                    detail = type(exc).__name__
                 errors.append(
-                    f"{spec['filename']}: {type(exc).__name__}: {exc}"
+                    f"{spec['filename']}: download failed ({detail}). Check the URL and access permissions."
                 )
                 continue
 
