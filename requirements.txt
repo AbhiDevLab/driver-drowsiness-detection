@@ -2,8 +2,9 @@
 streamlit==1.67.0
 streamlit-webrtc==0.79.1
 
-# Preserve compatibility with the project's trained Keras models
-tensorflow==2.12.0
+# CPU TensorFlow keeps the hosted runtime smaller than the full TensorFlow wheel.
+# It provides the same "tensorflow" Python import used by the project.
+tensorflow-cpu==2.12.0
 numpy==1.23.5
 protobuf==3.20.3
 h5py==3.15.1
