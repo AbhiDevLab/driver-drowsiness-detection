@@ -104,7 +104,7 @@ if missing_assets or asset_errors:
         'EYE_CNN_URL = "https://your-host/cnn_model.h5"\n'
         'MOUTH_CNN_URL = "https://your-host/mouth_cnn_model.h5"\n'
         'EAR_MODEL_URL = "https://your-host/ml_model.pkl"\n'
-        'DLIB_PREDICTOR_URL = "https://your-host/shape_predictor_68_face_landmarks.dat"\\n'
+        'DLIB_PREDICTOR_URL = "https://your-host/shape_predictor_68_face_landmarks.dat"\n'
         'EYE_CNN_POSITIVE_CLASS = "open"',
         language="toml",
     )
