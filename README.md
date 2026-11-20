@@ -636,7 +636,10 @@ EYE_CNN_URL = "https://your-host/cnn_model.h5"
 MOUTH_CNN_URL = "https://your-host/mouth_cnn_model.h5"
 EAR_MODEL_URL = "https://your-host/ml_model.pkl"
 DLIB_PREDICTOR_URL = "https://your-host/shape_predictor_68_face_landmarks.dat"
+EYE_CNN_POSITIVE_CLASS = "open"
 ```
+
+Set EYE_CNN_POSITIVE_CLASS to "open" when the eye CNN's sigmoid output represents the open_eyes class, or "closed" when it represents closed_eyes. The default "open" matches alphabetical class ordering when the training directory contains only closed_eyes and open_eyes. Check the class_indices printed by the original training generator before choosing; the H5 model does not preserve that mapping.
 
 Use the extracted .dat predictor file, not the compressed .bz2 archive. These URLs are read as secrets and downloaded to an ignored local cache at startup. Do not commit private download tokens or .streamlit/secrets.toml to Git.
 
