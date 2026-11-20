@@ -207,7 +207,7 @@ Driver-Drowsiness-Detection/
 **Model Architecture**:
 - Input: 64x64x3 RGB images
 - Conv2D(32) → MaxPooling2D → Conv2D(64) → MaxPooling2D → Flatten → Dense(128) → Dense(1, sigmoid)
-- Binary classification (open=0, closed=1)
+- Binary classification with alphabetical directory labels: closed_eyes=0, open_eyes=1
 
 ---
 
@@ -500,7 +500,7 @@ EAR = (vertical_distances_sum) / (2 * horizontal_distance)
 
 - **EAR Alert**: EAR < 0.23 for 20+ consecutive frames
 - **Eye CNN Alert**: Eye closed probability ≥ 0.5 for 5+ consecutive frames
-- **Yawn Alert**: Yawn probability ≥ 0.6 for 3+ consecutive frames
+- **Yawn Alert**: Yawn probability ≥ 0.5 for 3+ consecutive frames
 - **Sideways Alert**: Head turned left/right for 3+ seconds
 
 ---
