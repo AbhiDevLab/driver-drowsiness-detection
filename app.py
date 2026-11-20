@@ -67,6 +67,10 @@ except Exception:
     app_secrets = {}
 
 asset_paths, missing_assets, asset_errors = resolve_model_assets(ROOT, app_secrets)
+eye_positive_class = (_get_secret("EYE_CNN_POSITIVE_CLASS") or "open").lower()
+if eye_positive_class not in {"open", "closed"}:
+    st.error("EYE_CNN_POSITIVE_CLASS must be set to either 'open' or 'closed'.")
+    st.stop()
 
 if missing_assets or asset_errors:
     st.subheader("Model assets need to be configured")
@@ -114,11 +118,18 @@ try:
     from src.detection_engine import DrowsinessEngine
 
     @st.cache_resource(show_spinner="Loading the drowsiness detection models...")
-    def load_engine(asset_items: tuple[tuple[str, str], ...]) -> DrowsinessEngine:
-        return DrowsinessEngine({key: path for key, path in asset_items})
+    def load_engine(
+        asset_items: tuple[tuple[str, str], ...],
+        positive_class: str,
+    ) -> DrowsinessEngine:
+        return DrowsinessEngine(
+            {key: path for key, path in asset_items},
+            eye_positive_class=positive_class,
+        )
 
     engine = load_engine(
-        tuple((key, str(path)) for key, path in sorted(asset_paths.items()))
+        tuple((key, str(path)) for key, path in sorted(asset_paths.items())),
+        eye_positive_class,
     )
 except Exception as exc:
     LOGGER.exception("Could not initialize the detection engine.")
