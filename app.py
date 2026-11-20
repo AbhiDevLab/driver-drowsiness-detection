@@ -61,7 +61,7 @@ def _get_secret(key: str) -> str | None:
     return str(value).strip() if value else None
 
 
-asset_paths, missing_assets, asset_errors = resolve_model_assets(ROOT, st.secrets)
+try:\n    app_secrets = st.secrets\nexcept Exception:\n    app_secrets = {}\n\nasset_paths, missing_assets, asset_errors = resolve_model_assets(ROOT, app_secrets)
 
 if missing_assets or asset_errors:
     st.subheader("Model assets need to be configured")
@@ -128,7 +128,7 @@ except Exception as exc:
 
 class DrowsinessVideoProcessor(VideoProcessorBase):
     def __init__(self, shared_engine: DrowsinessEngine) -> None:
-        self.engine = shared_engine
+        self.engine = shared_engine.create_session()
         self._metrics_lock = threading.Lock()
         self._latest_metrics: dict[str, Any] = {
             "face_detected": False,
