@@ -597,3 +597,68 @@ For questions or issues, please open an issue on the repository.
 ⭐ Star this repo if you find it helpful!
 
 </div>
+
+
+---
+
+## Streamlit Web Deployment
+
+The repository includes a browser-based Streamlit interface in app.py. It uses WebRTC to receive webcam frames from the visitor's browser; it does not try to open a camera attached to the remote Streamlit server. The original desktop application remains available through:
+
+```bash
+python src/drowsiness_detector.py
+```
+
+### Streamlit Community Cloud settings
+
+| Setting | Value |
+|---|---|
+| Repository | AbhiDevLab/driver-drowsiness-detection |
+| Branch | master |
+| Main file path | app.py |
+| Python version | 3.11 |
+
+### Required trained assets
+
+The current Git repository intentionally excludes model binaries. The web detector needs all four files:
+
+- cnn_model.h5 — trained eye-state CNN
+- mouth_cnn_model.h5 — trained yawn CNN
+- ml_model.pkl — trained EAR Random Forest classifier
+- shape_predictor_68_face_landmarks.dat — dlib 68-point facial-landmark predictor
+
+For local use, put the three model files inside models/ and the dlib predictor in the repository root. The app detects those files automatically.
+
+For Streamlit Community Cloud, host the files somewhere that provides direct HTTPS downloads. Then open App → Settings → Secrets and add:
+
+```toml
+EYE_CNN_URL = "https://your-host/cnn_model.h5"
+MOUTH_CNN_URL = "https://your-host/mouth_cnn_model.h5"
+EAR_MODEL_URL = "https://your-host/ml_model.pkl"
+DLIB_PREDICTOR_URL = "https://your-host/shape_predictor_68_face_landmarks.dat"
+```
+
+Use the extracted .dat predictor file, not the compressed .bz2 archive. These URLs are read as secrets and downloaded to an ignored local cache at startup. Do not commit private download tokens or .streamlit/secrets.toml to Git.
+
+Optional TURN server settings can be added if the browser cannot establish a WebRTC connection through the default public STUN server:
+
+```toml
+TURN_SERVER_URL = "turn:your-turn-server:3478"
+TURN_SERVER_USERNAME = "your-username"
+TURN_SERVER_CREDENTIAL = "your-password"
+```
+
+### Local run
+
+```bash
+python -m pip install -r requirements.txt
+streamlit run app.py
+```
+
+Open the local localhost URL, allow camera access, and start the stream. On Streamlit Community Cloud, HTTPS is provided by the hosting platform. Some restrictive networks may still require TURN configuration.
+
+### Important limitations
+
+- Camera frames are transmitted from the browser to the hosted server for inference. The app does not intentionally save or record the video.
+- All four trained assets must be supplied before live detection can start. A deployment without them displays an asset-configuration guide rather than a false working demo.
+- The hosted application is an educational prototype, not a medically validated or vehicle-certified driver-safety product.
