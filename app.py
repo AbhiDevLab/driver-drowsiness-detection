@@ -61,7 +61,12 @@ def _get_secret(key: str) -> str | None:
     return str(value).strip() if value else None
 
 
-try:\n    app_secrets = st.secrets\nexcept Exception:\n    app_secrets = {}\n\nasset_paths, missing_assets, asset_errors = resolve_model_assets(ROOT, app_secrets)
+try:
+    app_secrets = st.secrets
+except Exception:
+    app_secrets = {}
+
+asset_paths, missing_assets, asset_errors = resolve_model_assets(ROOT, app_secrets)
 
 if missing_assets or asset_errors:
     st.subheader("Model assets need to be configured")
