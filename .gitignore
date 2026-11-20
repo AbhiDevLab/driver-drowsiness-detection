@@ -9,6 +9,7 @@ scripts/**
 shape_predictor_68_face_landmarks.dat
 drowzy/
 drowzy/**
+.model_cache/
 __pycache__/
 *.py[cod]
 *$py.class
@@ -24,3 +25,4 @@ report/
 .DS_Store
 Thumbs.db
 assets/
+.streamlit/secrets.toml
